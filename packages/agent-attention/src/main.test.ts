@@ -1,4 +1,4 @@
-import { chmodSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
+import { chmodSync, existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
 
@@ -74,7 +74,7 @@ test("hook-stop parses owner output and returns a valid block", () => {
 	const executable = writeFakePython(
 		"agent-attention-stop-",
 		`
-if (process.argv.slice(3).join(" ") !== "check-stop --thread-id thread-123") process.exit(97)
+if (JSON.stringify(process.argv.slice(3)) !== JSON.stringify(["check-stop", "--thread-id", "thread-123"])) process.exit(97)
 console.log(JSON.stringify({ hook_action: "continue", reason: "Approval is still required." }))
 `,
 	)
@@ -93,10 +93,18 @@ console.log(JSON.stringify({ hook_action: "continue", reason: "Approval is still
 })
 
 test("hook-stop fails closed on invalid stdin without invoking Python", () => {
-	const completed = runMain("/missing/python3", ["hook-stop"], "not-json")
+	const markerRoot = mkdtempSync(join(tmpdir(), "agent-attention-invalid-stop-"))
+	temporaryRoots.push(markerRoot)
+	const marker = join(markerRoot, "python-invoked")
+	const executable = writeFakePython(
+		"agent-attention-invalid-stop-python-",
+		`await Bun.write(${JSON.stringify(marker)}, "invoked")\n`,
+	)
+	const completed = runMain(executable, ["hook-stop"], "not-json")
 	const result = JSON.parse(completed.stdout.toString())
 
 	expect(completed.exitCode, completed.stderr.toString()).toBe(0)
 	expect(result).toMatchObject({ decision: "block" })
 	expect(result.reason).toContain("could not correlate this Stop event")
+	expect(existsSync(marker)).toBeFalse()
 })
