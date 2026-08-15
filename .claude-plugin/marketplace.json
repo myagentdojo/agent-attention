@@ -1,19 +1,19 @@
 {
-  "name": "harness-native-plugin-prototype",
+  "name": "agent-attention",
   "owner": {
-    "name": "Prototype"
+    "name": "My Agent Dojo"
   },
   "metadata": {
-    "description": "Marketplace for Harness Plugin Prototype",
-    "version": "0.3.0"
+    "description": "Marketplace for Agent Attention",
+    "version": "0.1.0"
   },
   "plugins": [
     {
-      "name": "harness-native-plugin-prototype",
-      "displayName": "Harness Plugin Prototype",
-      "description": "Portable Bun skills and a guided native capability tour for Claude Code and Codex",
+      "name": "agent-attention",
+      "displayName": "Agent Attention",
+      "description": "Bun-powered approval gates that bring blocked agent decisions back to the user",
       "author": {
-        "name": "Prototype"
+        "name": "My Agent Dojo"
       },
       "source": "./plugin",
       "defaultEnabled": false

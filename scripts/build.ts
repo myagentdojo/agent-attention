@@ -1639,6 +1639,7 @@ const modelOnlySkillFiles = [
 	"skills/capability-tour/references/capability-reviewer.md",
 	"skills/runtime-custody/SKILL.md",
 ]
+const agentAttentionSidecarFiles = ["runtime/agent-attention.py"]
 const allowedPayloadSurfaces = new Set([
 	".claude-plugin",
 	".codex-plugin",
@@ -1685,6 +1686,7 @@ export function validateBunOnlyPayload(root: string): void {
 		...capabilityHookFiles,
 		...capabilityAssetFiles,
 		...modelOnlySkillFiles,
+		...agentAttentionSidecarFiles,
 	]
 	const bundleInventory = JSON.parse(
 		readFileSync(join(root, "plugin", "runtime", "bundle-inventory.json"), "utf8"),

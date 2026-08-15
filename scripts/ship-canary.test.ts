@@ -35,6 +35,19 @@ import {
 } from "./ship-canary"
 
 const root = resolve(import.meta.dir, "..")
+const trustedPluginConfig = JSON.parse(
+	readFileSync(join(root, "plugin.config.json"), "utf8"),
+) as {
+	template: boolean
+	repository: string
+	canary: {
+		owner: string
+		actor: string
+		publicRepository: string
+		privateRepository: string
+	}
+}
+const templateBootstrapTest = trustedPluginConfig.template ? test : test.skip
 const sourceSha = "0123456789abcdef0123456789abcdef01234567"
 const publicCandidateSha = "cccccccccccccccccccccccccccccccccccccccc"
 
@@ -649,16 +662,21 @@ test("candidate config cannot redirect trusted canary targets", () => {
 	)
 })
 
-test("trusted template base admits exact first-consumer canary targets", () => {
+test("trusted initialized base admits its exact configured canary targets", () => {
 	const candidate = recordingCanaryFixture()
+	writeFileSync(
+		join(candidate.temporaryRoot, "plugin.config.json"),
+		`${JSON.stringify(trustedPluginConfig, null, 2)}\n`,
+	)
+	const repository = trustedPluginConfig.repository.replace("https://github.com/", "")
 	const { evidence } = runRecordingPreflight(
 		candidate,
-		{},
+		{ origin: `git@github-myagentdojo:${repository}.git` },
 		recordingCanaryEnvironment({
-			GITHUB_REPOSITORY: "myagentdojo/dojo-hello",
-			CANARY_HEAD_REPOSITORY: "myagentdojo/dojo-hello",
+			GITHUB_REPOSITORY: repository,
+			CANARY_HEAD_REPOSITORY: repository,
 			GITHUB_WORKFLOW_REF:
-				"myagentdojo/dojo-hello/.github/workflows/hosted-canary.yml@refs/heads/main",
+				`${repository}/.github/workflows/hosted-canary.yml@refs/heads/main`,
 		}),
 		root,
 	)
@@ -666,8 +684,14 @@ test("trusted template base admits exact first-consumer canary targets", () => {
 	expect(evidence).toMatchObject({
 		identity: "myagentdojo",
 		targets: [
-			{ repository: "myagentdojo/dojo-hello-public-canary", visibility: "PUBLIC" },
-			{ repository: "myagentdojo/dojo-hello-private-canary", visibility: "PRIVATE" },
+			{
+				repository: `${trustedPluginConfig.canary.owner}/${trustedPluginConfig.canary.publicRepository}`,
+				visibility: "PUBLIC",
+			},
+			{
+				repository: `${trustedPluginConfig.canary.owner}/${trustedPluginConfig.canary.privateRepository}`,
+				visibility: "PRIVATE",
+			},
 		],
 	})
 })
@@ -683,7 +707,7 @@ interface MutableBootstrapCandidate {
 	}
 }
 
-test.each([
+templateBootstrapTest.each([
 	[
 		"redirected target",
 		(config: MutableBootstrapCandidate) => {

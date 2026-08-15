@@ -251,7 +251,14 @@ export interface InstalledCapabilityEvidence {
 		| { status: "not-proved"; receipt: null }
 		| { status: "proved"; receipt: NativeQualificationEvidence }
 		| { status: "failed"; receipt: NativeQualificationEvidence }
-	portableSkillsWithoutHooks: ["hello-world", "skill-a", "skill-b", "runtime-custody", "capability-tour"]
+	portableSkillsWithoutHooks: [
+		"agent-attention",
+		"hello-world",
+		"skill-a",
+		"skill-b",
+		"runtime-custody",
+		"capability-tour",
+	]
 }
 
 /** Hash-only conclusions that may be promoted from a private fresh-client receipt. */
@@ -1280,6 +1287,7 @@ export function proveInstalledCapabilityEvidence(
 		.filter((path) => /^skills\/[^/]+\/SKILL\.md$/.test(path))
 		.map((path) => path.slice("skills/".length, -"/SKILL.md".length))
 	const portableSkills = [
+		"agent-attention",
 		"capability-tour",
 		"hello-world",
 		"runtime-custody",
@@ -1289,7 +1297,7 @@ export function proveInstalledCapabilityEvidence(
 	if (JSON.stringify(installedSkills) !== JSON.stringify(portableSkills)) {
 		throw new Error(`${client} installed portable skill inventory differs`)
 	}
-	const executableSkills = ["hello-world", "skill-a", "skill-b"]
+	const executableSkills = ["agent-attention", "hello-world", "skill-a", "skill-b"]
 	const launchers = installedInventory
 		.filter((path) => path.startsWith("bin/"))
 		.map((path) => path.slice("bin/".length))
@@ -1391,6 +1399,7 @@ export function proveInstalledCapabilityEvidence(
 		nativeDelegation: nativeProved ? "proved" : "not-proved",
 		nativeQualification,
 		portableSkillsWithoutHooks: [
+			"agent-attention",
 			"hello-world",
 			"skill-a",
 			"skill-b",

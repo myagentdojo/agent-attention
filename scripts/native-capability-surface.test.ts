@@ -60,6 +60,12 @@ test("generation projects one exact native hook declaration per supported client
 							type: "command",
 							command: '"${PLUGIN_ROOT}/hooks/native-capability-hook" Stop codex',
 						},
+						{
+							type: "command",
+							command: '"${PLUGIN_ROOT}/bin/agent-attention" hook-stop',
+							timeout: 10,
+							statusMessage: "Checking Agent Attention owner state",
+						},
 					],
 				},
 			],
@@ -86,8 +92,10 @@ test("checked-in manifests expose one coherent tour identity and relative native
 		readFileSync(join(root, "plugin", ".codex-plugin", "plugin.json"), "utf8"),
 	)
 
-	expect(config.name).toBe("harness-native-plugin-prototype")
-	expect(config.defaultPrompts).toEqual(["Run the native plugin capability tour."])
+	expect(config.name).toBe("agent-attention")
+	expect(config.defaultPrompts).toEqual([
+		"Route this blocking yes or no approval through Agent Attention.",
+	])
 	expect(claudeManifest).toMatchObject({
 		name: config.name,
 		displayName: config.displayName,

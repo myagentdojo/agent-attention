@@ -16,6 +16,7 @@ import { dirname, join } from "node:path"
 import { afterEach, expect, setDefaultTimeout, test } from "bun:test"
 
 const root = new URL("..", import.meta.url).pathname
+const pluginName = JSON.parse(readFileSync(join(root, "plugin.config.json"), "utf8")).name as string
 const temporaryRoots: string[] = []
 const hermeticBunPath = `${dirname(process.execPath)}:/usr/bin:/bin`
 const helperProcessTimeoutMs = 30_000
@@ -162,7 +163,7 @@ function updateFixture(): {
 	const { priorCommit, repositoryRoot, targetCommit } = createReleaseRepository(temporaryRoot)
 
 	const codeHome = join(temporaryRoot, "codex")
-	const marketplaceRoot = join(codeHome, ".tmp", "marketplaces", "harness-native-plugin-prototype")
+	const marketplaceRoot = join(codeHome, ".tmp", "marketplaces", pluginName)
 	mkdirSync(join(marketplaceRoot, ".."), { recursive: true })
 	git(["clone", "--quiet", repositoryRoot, marketplaceRoot], temporaryRoot)
 	git(["checkout", "--quiet", "--detach", priorCommit], marketplaceRoot)
@@ -184,14 +185,14 @@ function updateFixture(): {
 		codeHome,
 		"plugins",
 		"cache",
-		"harness-native-plugin-prototype",
-		"harness-native-plugin-prototype",
+		pluginName,
+		pluginName,
 		"0.1.0",
 	)
 	cpSync(join(marketplaceRoot, "plugin"), installedPath, { recursive: true })
 	writeFileSync(
 		join(codeHome, "config.toml"),
-		`[marketplaces.harness-native-plugin-prototype]\nlast_revision = "${priorCommit}"\nsource_type = "git"\nsource = ${JSON.stringify(repositoryRoot)}\nref = "v0.1.0"\n\n[plugins."harness-native-plugin-prototype@harness-native-plugin-prototype"]\nenabled = true\n`,
+		`[marketplaces.${pluginName}]\nlast_revision = "${priorCommit}"\nsource_type = "git"\nsource = ${JSON.stringify(repositoryRoot)}\nref = "v0.1.0"\n\n[plugins."${pluginName}@${pluginName}"]\nenabled = true\n`,
 	)
 
 	const statePath = join(temporaryRoot, "codex-state.json")
@@ -201,7 +202,7 @@ function updateFixture(): {
 			marketplaces: {
 				marketplaces: [
 					{
-						name: "harness-native-plugin-prototype",
+						name: pluginName,
 						root: marketplaceRoot,
 						marketplaceSource: { sourceType: "git", source: repositoryRoot },
 					},
@@ -210,9 +211,9 @@ function updateFixture(): {
 			plugins: {
 				installed: [
 					{
-						pluginId: "harness-native-plugin-prototype@harness-native-plugin-prototype",
-						name: "harness-native-plugin-prototype",
-						marketplaceName: "harness-native-plugin-prototype",
+						pluginId: `${pluginName}@${pluginName}`,
+						name: pluginName,
+						marketplaceName: pluginName,
 						version: "0.1.0",
 						installed: true,
 						enabled: true,
@@ -297,7 +298,7 @@ function nativeUpdateFixture(): {
 		environment,
 	)
 	nativeCodexJson(
-		["plugin", "add", "harness-native-plugin-prototype@harness-native-plugin-prototype", "--json"],
+		["plugin", "add", `${pluginName}@${pluginName}`, "--json"],
 		project,
 		environment,
 	)

@@ -2,6 +2,11 @@
 # Generated from bundle-inventory.json by scripts/build.ts. Edit workspace sources, then run bun run build.
 runtime_inventory_select_bundle() {
 	case "$1" in
+	'agent-attention')
+		RUNTIME_BUNDLE_PATH='runtime/agent-attention-5133bb12807899e9.js'
+		RUNTIME_BUNDLE_BYTES='4589'
+		RUNTIME_BUNDLE_SHA256='5133bb12807899e90fdc0f861ca096ca8be9faa963063742630ce786ff0303c6'
+		;;
 	'hello-world')
 		RUNTIME_BUNDLE_PATH='runtime/hello-world.js'
 		RUNTIME_BUNDLE_BYTES='995'
