@@ -668,7 +668,9 @@ test("trusted initialized base admits its exact configured canary targets", () =
 		join(candidate.temporaryRoot, "plugin.config.json"),
 		`${JSON.stringify(trustedPluginConfig, null, 2)}\n`,
 	)
-	const repository = trustedPluginConfig.repository.replace("https://github.com/", "")
+	const repository = trustedPluginConfig.repository
+		.replace("https://github.com/", "")
+		.replace(/\.git$/, "")
 	const { evidence } = runRecordingPreflight(
 		candidate,
 		{ origin: `git@github-myagentdojo:${repository}.git` },

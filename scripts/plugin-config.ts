@@ -454,7 +454,7 @@ export function hookDeclarationBody(client: HarnessId): Record<string, unknown> 
 	if (client === "codex") {
 		stopHooks.push({
 			type: "command",
-			command: '"${PLUGIN_ROOT}/bin/agent-attention" hook-stop',
+			command: `"\${${pluginRoot}}/bin/agent-attention" hook-stop`,
 			timeout: 10,
 			statusMessage: "Checking Agent Attention owner state",
 		})

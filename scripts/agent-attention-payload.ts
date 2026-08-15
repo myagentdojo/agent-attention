@@ -10,6 +10,10 @@ import { dirname, join } from "node:path"
 
 import type { GeneratedFile } from "./plugin-config"
 
+interface RenderedAgentAttentionFile extends GeneratedFile {
+	executable: boolean
+}
+
 const projections = [
 	{
 		source: "experiments/agent-attention/runtime/agent-attention/agent-attention.py",
@@ -24,21 +28,22 @@ const projections = [
 ] as const
 
 /** Render Agent Attention sidecars from reviewed experiment sources. */
-export function renderAgentAttentionPayload(root: string): GeneratedFile[] {
-	return projections.map(({ source, target }) => ({
+export function renderAgentAttentionPayload(root: string): RenderedAgentAttentionFile[] {
+	return projections.map(({ source, target, executable }) => ({
 		path: target,
 		contents: readFileSync(join(root, source), "utf8"),
+		executable,
 	}))
 }
 
 /** Write Agent Attention sidecars and preserve runtime executability. */
 export function writeAgentAttentionPayload(root: string): GeneratedFile[] {
 	const files = renderAgentAttentionPayload(root)
-	for (const [index, file] of files.entries()) {
+	for (const file of files) {
 		const path = join(root, file.path)
 		mkdirSync(dirname(path), { recursive: true })
 		writeFileSync(path, file.contents)
-		if (projections[index].executable) chmodSync(path, 0o755)
+		if (file.executable) chmodSync(path, 0o755)
 	}
 	return files
 }
@@ -46,10 +51,10 @@ export function writeAgentAttentionPayload(root: string): GeneratedFile[] {
 /** Return missing, stale, or non-executable Agent Attention projections. */
 export function checkAgentAttentionPayload(root: string): string[] {
 	return renderAgentAttentionPayload(root)
-		.filter((file, index) => {
+		.filter((file) => {
 			const path = join(root, file.path)
 			if (!existsSync(path) || readFileSync(path, "utf8") !== file.contents) return true
-			return projections[index].executable && (statSync(path).mode & 0o111) === 0
+			return file.executable && (statSync(path).mode & 0o111) === 0
 		})
 		.map((file) => file.path)
 }

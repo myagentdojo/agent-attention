@@ -4,6 +4,7 @@ import { join, resolve } from "node:path"
 
 import { expect, test } from "bun:test"
 
+import { HARNESS_IDENTITIES } from "./harness-identity"
 import { type PluginConfig, renderGeneratedFiles } from "./plugin-config"
 import { copyPluginPayload, pluginPayloadInventory } from "./plugin-files"
 
@@ -11,6 +12,7 @@ const root = resolve(import.meta.dir, "..")
 const config = JSON.parse(readFileSync(join(root, "plugin.config.json"), "utf8")) as PluginConfig
 
 test("generation projects one exact native hook declaration per supported client", () => {
+	const codexPluginRoot = HARNESS_IDENTITIES.codex.pluginRootEnvVar
 	const generated = new Map(
 		renderGeneratedFiles(config).map((file) => [file.path, JSON.parse(file.contents)]),
 	)
@@ -62,7 +64,7 @@ test("generation projects one exact native hook declaration per supported client
 						},
 						{
 							type: "command",
-							command: '"${PLUGIN_ROOT}/bin/agent-attention" hook-stop',
+							command: `"\${${codexPluginRoot}}/bin/agent-attention" hook-stop`,
 							timeout: 10,
 							statusMessage: "Checking Agent Attention owner state",
 						},

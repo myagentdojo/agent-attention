@@ -4,6 +4,7 @@ import { join } from "node:path"
 
 import { afterAll, beforeAll, expect, test } from "bun:test"
 
+import { HARNESS_IDENTITIES } from "./harness-identity"
 import { copyPluginPayload } from "./plugin-files"
 import { hookDeclarationBody } from "./plugin-config"
 
@@ -53,6 +54,7 @@ test("Agent Attention is generated into the installable payload", () => {
 })
 
 test("Codex Stop declares the custody-launched installed adapter", () => {
+	const codexPluginRoot = HARNESS_IDENTITIES.codex.pluginRootEnvVar
 	const declaration = hookDeclarationBody("codex") as {
 		hooks: { Stop: Array<{ hooks: Array<{ command: string; timeout?: number }> }> }
 	}
@@ -60,7 +62,7 @@ test("Codex Stop declares the custody-launched installed adapter", () => {
 
 	expect(commands).toContainEqual({
 		type: "command",
-		command: '"${PLUGIN_ROOT}/bin/agent-attention" hook-stop',
+		command: `"\${${codexPluginRoot}}/bin/agent-attention" hook-stop`,
 		timeout: 10,
 		statusMessage: "Checking Agent Attention owner state",
 	})
@@ -74,7 +76,11 @@ test("installed Stop adapter fails closed when Python is unavailable", () => {
 	const completed = Bun.spawnSync({
 		cmd: [process.execPath, bundlePath, "hook-stop"],
 		cwd: temporaryRoot,
-		env: { ...process.env, AGENT_ATTENTION_PYTHON: "/missing/python3" },
+		env: {
+			...process.env,
+			AGENT_ATTENTION_PYTHON: "/missing/python3",
+			XDG_STATE_HOME: join(temporaryRoot, "unavailable-python-state"),
+		},
 		stdin: Buffer.from(
 			JSON.stringify({
 				cwd: temporaryRoot,

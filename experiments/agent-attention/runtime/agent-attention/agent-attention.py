@@ -942,7 +942,11 @@ def append_outcome_notes(current_notes: str, addition: str) -> str:
 
 def contains_outcome_notes(current_notes: str, addition: str) -> bool:
 	"""Recognize one exact outcome block with an optional managed URL footer."""
-	return current_notes == append_outcome_notes(current_notes.replace(addition, "").strip(), addition)
+	lines = current_notes.rstrip().splitlines()
+	if lines and lines[-1].startswith(MANAGED_URL_PREFIX):
+		lines = lines[:-1]
+	body = "\n".join(lines).rstrip()
+	return body.endswith(addition)
 
 
 def read_gate_mapping(state_dir: Path, reminder_id: str) -> dict[str, Any]:
@@ -1198,7 +1202,9 @@ def poll(args: argparse.Namespace) -> dict[str, Any]:
 		return base_result("waiting", changed=False, open_gate_count=0)
 	inventory = read_inventory(
 		config,
-		timeout_seconds=getattr(args, "command_timeout_seconds", None),
+		timeout_seconds=getattr(
+			args, "command_timeout_seconds", REMINDCTL_COMMAND_TIMEOUT_SECONDS
+		),
 	)
 	items_by_id = {item["id"]: item for item in inventory}
 	preserved_claim: dict[str, Any] | None = None

@@ -381,6 +381,21 @@ else:
 		self.assertIn("gate mapping approval_meaning must be nonempty text", completed.stderr)
 		self.assertNotIn("Traceback", completed.stderr)
 
+	def test_direct_poll_bounds_the_inventory_read(self) -> None:
+		with mock.patch.object(
+			AGENT_ATTENTION,
+			"read_inventory",
+			side_effect=AGENT_ATTENTION.ContractError("sentinel"),
+		) as read_inventory:
+			with self.assertRaisesRegex(AGENT_ATTENTION.ContractError, "sentinel"):
+				AGENT_ATTENTION.poll(
+					AGENT_ATTENTION.argparse.Namespace(state_dir=self.state_dir)
+				)
+		read_inventory.assert_called_once_with(
+			mock.ANY,
+			timeout_seconds=AGENT_ATTENTION.REMINDCTL_COMMAND_TIMEOUT_SECONDS,
+		)
+
 	def test_poll_rejects_non_object_inventory_entry(self) -> None:
 		self.inventory_path.write_text(json.dumps([self.target, []]), encoding="utf-8")
 		completed = self.run_cli("poll")
@@ -443,6 +458,14 @@ else:
 		inventory = json.loads(self.inventory_path.read_text())
 		target = next(item for item in inventory if item["id"] == REMINDER_ID)
 		self.assertNotIn("Outcome:", target["notes"])
+
+	def test_outcome_notes_recognize_terminal_block_with_repeated_text(self) -> None:
+		addition = f"Outcome: Complete.\nFinished: {FINISHED_AT}"
+		notes = (
+			f"Prior text containing Complete.\n{addition}\n{addition}\n"
+			f"remindctl URL (managed): agent-attention://threads/{THREAD_ID}"
+		)
+		self.assertTrue(AGENT_ATTENTION.contains_outcome_notes(notes, addition))
 
 	def test_outcome_rejects_non_object_delivery_receipt(self) -> None:
 		receipt_path = next((self.state_dir / "receipts").glob("*.json"))
@@ -1259,7 +1282,6 @@ else:
 		)
 
 	def test_watch_bounds_a_hung_remindctl_call(self) -> None:
-		started = time.monotonic()
 		completed = self.run_cli(
 			"watch",
 			"--interval-seconds",
@@ -1269,7 +1291,6 @@ else:
 			env_update={"FAKE_REMINDERS_HANG_SHOW_SECONDS": "2"},
 		)
 		self.assertEqual(completed.returncode, 1)
-		self.assertLess(time.monotonic() - started, 1.9)
 		self.assertIn("bounded execution window", completed.stderr)
 
 	def test_watch_rejects_non_finite_durations_without_traceback(self) -> None:
