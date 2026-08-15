@@ -1,0 +1,22 @@
+{
+  "name": "harness-native-plugin-prototype",
+  "owner": {
+    "name": "Prototype"
+  },
+  "metadata": {
+    "description": "Marketplace for Harness Plugin Prototype",
+    "version": "0.3.0"
+  },
+  "plugins": [
+    {
+      "name": "harness-native-plugin-prototype",
+      "displayName": "Harness Plugin Prototype",
+      "description": "Portable Bun skills and a guided native capability tour for Claude Code and Codex",
+      "author": {
+        "name": "Prototype"
+      },
+      "source": "./plugin",
+      "defaultEnabled": false
+    }
+  ]
+}

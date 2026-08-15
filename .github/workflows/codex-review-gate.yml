@@ -1,0 +1,137 @@
+name: Opt-in Codex review gate
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+  issue_comment:
+    types:
+      - created
+
+permissions:
+  contents: read
+  pull-requests: read
+  statuses: write
+
+env:
+  STATUS_CONTEXT: Codex review gate
+
+jobs:
+  initialize:
+    name: Default to review not requested
+    if: github.event_name == 'pull_request_target'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Mark the optional gate successful
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/statuses/${HEAD_SHA}" \
+            --raw-field state=success \
+            --raw-field context="${STATUS_CONTEXT}" \
+            --raw-field description="Codex review not requested" \
+            --raw-field target_url="${PR_URL}"
+
+  request:
+    name: Arm the gate when review is requested
+    if: github.event_name == 'issue_comment' && github.event.issue.pull_request != null
+    runs-on: ubuntu-24.04
+    env:
+      COMMENT_BODY: ${{ github.event.comment.body }}
+      COMMENTER: ${{ github.event.comment.user.login }}
+      GH_TOKEN: ${{ github.token }}
+      PR_NUMBER: ${{ github.event.issue.number }}
+    steps:
+      - name: Mark the current PR commit pending
+        shell: bash
+        run: |
+          shopt -s nocasematch
+          if [[ ! "${COMMENT_BODY}" =~ ^[[:space:]]*@codex[[:space:]]+review([[:space:]]|$) ]]; then
+            exit 0
+          fi
+
+          permission="$(gh api "repos/${GITHUB_REPOSITORY}/collaborators/${COMMENTER}/permission" --jq .permission)"
+          case "${permission}" in
+            admin|maintain|write) ;;
+            *)
+              echo "Ignoring review request from a user without write permission."
+              exit 0
+              ;;
+          esac
+
+          head_sha="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq .head.sha)"
+          pr_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/pull/${PR_NUMBER}"
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/statuses/${head_sha}" \
+            --raw-field state=pending \
+            --raw-field context="${STATUS_CONTEXT}" \
+            --raw-field description="Codex review in progress" \
+            --raw-field target_url="${pr_url}"
+
+  approve:
+    name: Release the gate after an authorized clean-review attestation
+    if: github.event_name == 'issue_comment' && github.event.issue.pull_request != null
+    runs-on: ubuntu-24.04
+    env:
+      COMMENT_BODY: ${{ github.event.comment.body }}
+      COMMENTER: ${{ github.event.comment.user.login }}
+      GH_TOKEN: ${{ github.token }}
+      PR_NUMBER: ${{ github.event.issue.number }}
+    steps:
+      - name: Mark the attested PR commit successful
+        shell: bash
+        run: |
+          if [[ ! "${COMMENT_BODY}" =~ ^[[:space:]]*@codex-gate[[:space:]]+approve[[:space:]]+([0-9a-f]{10,40})[[:space:]]+([0-9]+)[[:space:]]*$ ]]; then
+            exit 0
+          fi
+          approved_prefix="${BASH_REMATCH[1]}"
+          review_comment_id="${BASH_REMATCH[2]}"
+
+          permission="$(gh api "repos/${GITHUB_REPOSITORY}/collaborators/${COMMENTER}/permission" --jq .permission)"
+          case "${permission}" in
+            admin|maintain|write) ;;
+            *)
+              echo "Ignoring review attestation from a user without write permission."
+              exit 0
+              ;;
+          esac
+
+          HEAD_SHA="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq .head.sha)"
+          if [[ "${HEAD_SHA}" != "${approved_prefix}"* ]]; then
+            echo "Ignoring a clean-review attestation for a stale PR commit."
+            exit 0
+          fi
+
+          review_receipt="$(gh api "repos/${GITHUB_REPOSITORY}/issues/comments/${review_comment_id}")"
+          receipt_author="$(jq -r '.user.login // ""' <<< "${review_receipt}")"
+          receipt_body="$(jq -r '.body // ""' <<< "${review_receipt}")"
+          if [[ "${receipt_author}" != "chatgpt-codex-connector[bot]" ]] ||
+            [[ "${receipt_body}" != *"**Reviewed commit:** \`${approved_prefix}"* ]]; then
+            echo "Ignoring an attestation without an exact bot-authored current-commit receipt."
+            exit 0
+          fi
+
+          codex_review_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/reviews" |
+              jq -s --arg head "${HEAD_SHA}" \
+                '[.[][] | select(.user.login == "chatgpt-codex-connector[bot]" and .commit_id == $head)] | length'
+          )"
+          codex_inline_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/comments" |
+              jq -s --arg head "${HEAD_SHA}" \
+                '[.[][] | select(.user.login == "chatgpt-codex-connector[bot]" and .original_commit_id == $head)] | length'
+          )"
+          if (( codex_review_count != 0 || codex_inline_count != 0 )); then
+            echo "Ignoring an attestation because the reviewed commit has Codex finding objects."
+            exit 0
+          fi
+
+          PR_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/pull/${PR_NUMBER}"
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/statuses/${HEAD_SHA}" \
+            --raw-field state=success \
+            --raw-field context="${STATUS_CONTEXT}" \
+            --raw-field description="Clean Codex review attested" \
+            --raw-field target_url="${PR_URL}"

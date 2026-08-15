@@ -1,0 +1,31 @@
+{
+  "name": "agent-plugin-template-tooling",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "bun@1.3.14",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "bun test",
+    "update": "bun run scripts/update.ts",
+    "init": "bun run scripts/init.ts",
+    "generate": "bun run scripts/generate.ts",
+    "generate:check": "bun run scripts/generate.ts --check",
+    "release:validate": "bun run scripts/release-validate.ts",
+    "build": "bun run generate:check && bun run scripts/build.ts",
+    "dev": "bun run scripts/dev.ts",
+    "dev:claude": "bun run scripts/dev.ts claude",
+    "dev:codex": "bun run scripts/dev.ts codex",
+    "ship:canary": "bun run scripts/ship-canary.ts",
+    "readiness": "bun run scripts/repository-readiness.ts",
+    "package": "bun run build && bun run scripts/package.ts",
+    "prove:distribution": "bun run scripts/prove-distribution.ts",
+    "prove:harness-install": "bun run scripts/prove-harness-install.ts",
+    "prove:dx": "bun run scripts/prove-dx.ts",
+    "prove:runtime-custody": "bun run scripts/prove-runtime-custody.ts",
+    "prove:runtime-platform": "bun run scripts/prove-runtime-platform.ts",
+    "prove:all": "bun test --path-ignore-patterns=scripts/runtime-custody-exec.test.ts && bun run generate:check && bun run release:validate && bun run prove:runtime-custody && bun run prove:harness-install -- --require-native --fixture-acknowledged && bun run prove:distribution && bun run prove:dx"
+  }
+}

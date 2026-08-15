@@ -1,0 +1,7 @@
+dist/
+node_modules/
+.*.bun-build
+.dev/
+.agent-worktree/
+.worktrees/
+worktree.config.json
