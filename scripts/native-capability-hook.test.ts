@@ -20,6 +20,9 @@ import { afterEach, expect, test } from "bun:test"
 import { HARNESS_IDENTITIES } from "./harness-identity"
 
 const root = fileURLToPath(new URL("..", import.meta.url)).replace(/\/$/, "")
+const pluginConfig = JSON.parse(readFileSync(join(root, "plugin.config.json"), "utf8")) as {
+	displayName: string
+}
 const temporaryRoots: string[] = []
 const warning =
 	"This plugin could not run its lifecycle mechanics proof; continuing without blocking.\n"
@@ -639,8 +642,14 @@ test("generation owns one deterministic LF fixture projection", () => {
 		"fixture",
 		"lifecycle-mechanics-proof.generated.json",
 	)
-	const expected =
-		'{\n  "schemaVersion": 1,\n  "purpose": "Harness Plugin Prototype lifecycle mechanics proof"\n}\n'
+	const expected = `${JSON.stringify(
+		{
+			schemaVersion: 1,
+			purpose: `${pluginConfig.displayName} lifecycle mechanics proof`,
+		},
+		null,
+		2,
+	)}\n`
 	expect(readFileSync(sourcePath, "utf8")).toBe(expected)
 	expect(readFileSync(projectionPath, "utf8")).toBe(expected)
 	expect(runGenerateCheck(temporaryRepository).exitCode).toBe(0)

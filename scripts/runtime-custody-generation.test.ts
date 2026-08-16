@@ -74,6 +74,11 @@ test("runtime custody sources generate one thin launcher and checked shell proje
 	expect(catalog).toEqual({
 		schemaVersion: 1,
 		skills: {
+			"agent-attention": {
+				entry: "runtime/agent-attention.js",
+				runtimeProfile: "bun",
+				workspace: "packages/agent-attention",
+			},
 			"hello-world": {
 				entry: "runtime/hello-world.js",
 				runtimeProfile: "bun",
@@ -94,6 +99,7 @@ test("runtime custody sources generate one thin launcher and checked shell proje
 		fileURLToPath(new URL("../plugin/skills", import.meta.url)),
 	).sort()
 	expect(installedSkills).toEqual([
+		"agent-attention",
 		"capability-tour",
 		"hello-world",
 		"runtime-custody",
@@ -128,15 +134,20 @@ test("runtime custody sources generate one thin launcher and checked shell proje
 		).text()
 		expect(skillDocument).not.toContain("Status: not yet invocable")
 	}
-	expect(generated.filter((file) => file.path.startsWith("plugin/bin/")).length).toBe(3)
+	expect(generated.filter((file) => file.path.startsWith("plugin/bin/")).length).toBe(4)
 	const launcherNames = readdirSync(
 		fileURLToPath(new URL("../plugin/bin", import.meta.url)),
 	).sort()
-	expect(launcherNames).toEqual(["hello-world", "skill-a", "skill-b"])
+	expect(launcherNames).toEqual(["agent-attention", "hello-world", "skill-a", "skill-b"])
 	const bundleInventory = await Bun.file(
 		new URL("../plugin/runtime/bundle-inventory.json", import.meta.url),
 	).json()
-	expect(Object.keys(bundleInventory.bundles).sort()).toEqual(["hello-world", "skill-a", "skill-b"])
+	expect(Object.keys(bundleInventory.bundles).sort()).toEqual([
+		"agent-attention",
+		"hello-world",
+		"skill-a",
+		"skill-b",
+	])
 	expect(bundleInventory.bundles).not.toHaveProperty("capability-tour")
 
 	const lockProjection = await Bun.file(

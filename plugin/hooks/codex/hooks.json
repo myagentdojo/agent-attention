@@ -16,6 +16,12 @@
           {
             "type": "command",
             "command": "\"${PLUGIN_ROOT}/hooks/native-capability-hook\" Stop codex"
+          },
+          {
+            "type": "command",
+            "command": "\"${PLUGIN_ROOT}/bin/agent-attention\" hook-stop",
+            "timeout": 10,
+            "statusMessage": "Checking Agent Attention owner state"
           }
         ]
       }

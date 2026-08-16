@@ -99,12 +99,14 @@ for (const required of [
 	`${packageName}/hooks/fixture/lifecycle-mechanics-proof.generated.json`,
 	`${packageName}/hooks/fixture/lifecycle-mechanics-proof.source.json`,
 	`${packageName}/hooks/native-capability-hook`,
+	`${packageName}/skills/agent-attention/SKILL.md`,
 	`${packageName}/skills/capability-tour/SKILL.md`,
 	`${packageName}/skills/capability-tour/references/capability-reviewer.md`,
 	`${packageName}/skills/hello-world/SKILL.md`,
 	`${packageName}/skills/runtime-custody/SKILL.md`,
 	`${packageName}/skills/skill-a/SKILL.md`,
 	`${packageName}/skills/skill-b/SKILL.md`,
+	`${packageName}/bin/agent-attention`,
 	`${packageName}/bin/hello-world`,
 	`${packageName}/bin/skill-a`,
 	`${packageName}/bin/skill-b`,
@@ -114,6 +116,7 @@ for (const required of [
 	`${packageName}/runtime/skill-catalog.sh`,
 	`${packageName}/runtime/bundle-inventory.json`,
 	`${packageName}/runtime/bundle-inventory.sh`,
+	`${packageName}/runtime/agent-attention.py`,
 	`${packageName}/THIRD-PARTY-NOTICES.md`,
 ]) {
 	if (!entries.includes(required)) throw new Error(`package is missing ${required}`)
@@ -167,6 +170,7 @@ const packagedSkills = entries
 	.filter((entry) => entry.startsWith(`${packageName}/skills/`) && entry.endsWith("/SKILL.md"))
 	.map((entry) => entry.slice(`${packageName}/skills/`.length, -"/SKILL.md".length))
 if (JSON.stringify(packagedSkills) !== JSON.stringify([
+	"agent-attention",
 	"capability-tour",
 	"hello-world",
 	"runtime-custody",
@@ -178,8 +182,13 @@ if (JSON.stringify(packagedSkills) !== JSON.stringify([
 const packagedLaunchers = entries
 	.filter((entry) => entry.startsWith(`${packageName}/bin/`) && !entry.endsWith("/"))
 	.map((entry) => entry.slice(`${packageName}/bin/`.length))
-if (JSON.stringify(packagedLaunchers) !== JSON.stringify(["hello-world", "skill-a", "skill-b"])) {
-	throw new Error("package launcher inventory does not preserve the v0.2.0 closure")
+if (JSON.stringify(packagedLaunchers) !== JSON.stringify([
+	"agent-attention",
+	"hello-world",
+	"skill-a",
+	"skill-b",
+])) {
+	throw new Error("package launcher inventory does not preserve the current closure")
 }
 const catalog = JSON.parse(readFileSync(join(root, "runtime", "skill-catalog.json"), "utf8"))
 const bundles = JSON.parse(
@@ -187,15 +196,20 @@ const bundles = JSON.parse(
 )
 for (const surface of [catalog.skills, bundles.bundles]) {
 	const surfaceKeys = Object.keys(surface).sort()
-	if (JSON.stringify(surfaceKeys) !== JSON.stringify(["hello-world", "skill-a", "skill-b"])) {
+	if (JSON.stringify(surfaceKeys) !== JSON.stringify([
+		"agent-attention",
+		"hello-world",
+		"skill-a",
+		"skill-b",
+	])) {
 		throw new Error(
-			`capability-tour entered the executable runtime closure: ${JSON.stringify(surfaceKeys)}`,
+			`executable runtime closure does not match the expected skills: ${JSON.stringify(surfaceKeys)}`,
 		)
 	}
 }
 
 const coldXdg = join(extractedRoot, "cold-xdg")
-for (const skillId of ["hello-world", "skill-a", "skill-b"]) {
+for (const skillId of ["agent-attention", "hello-world", "skill-a", "skill-b"]) {
 	const launcher = join(installedRoot, "bin", skillId)
 	const launcherText = readFileSync(launcher, "utf8")
 	if (!launcherText.includes(`runtime/runtime-exec\" run ${skillId} --`)) {
@@ -271,6 +285,7 @@ console.log(
 		nativeDelegation: "not-proved",
 		qualificationReceiptsIngested: false,
 		hookIndependentSkills: [
+			"agent-attention",
 			"hello-world",
 			"skill-a",
 			"skill-b",

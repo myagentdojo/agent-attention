@@ -1,21 +1,21 @@
 {
-  "template": true,
-  "name": "harness-native-plugin-prototype",
-  "displayName": "Harness Plugin Prototype",
-  "version": "0.3.0",
-  "description": "Portable Bun skills and a guided native capability tour for Claude Code and Codex",
+  "template": false,
+  "name": "agent-attention",
+  "displayName": "Agent Attention",
+  "version": "0.1.0",
+  "description": "Bun-powered approval gates that bring blocked agent decisions back to the user",
   "author": {
-    "name": "Prototype"
+    "name": "My Agent Dojo"
   },
-  "repository": "https://github.com/myagentdojo/agent-plugin-template",
+  "repository": "https://github.com/myagentdojo/agent-attention",
   "license": "MIT",
   "keywords": [
     "agent-plugin",
     "bun"
   ],
   "category": "Developer Tools",
-  "shortDescription": "Tour native plugin features",
-  "longDescription": "Run a guided capability tour across Claude Code and Codex, inspect native lifecycle declarations, and keep using dependency-closed skills through one verified, plugin-managed Bun runtime.",
+  "shortDescription": "Route one blocking approval",
+  "longDescription": "Route one genuine yes or no Codex approval blocker into Apple Reminders with exact-task state, installed Stop enforcement, and retained outcome receipts.",
   "capabilities": [
     "Execute verified Bun code",
     "Download Bun after approval",
@@ -23,10 +23,12 @@
     "Use network during repair",
     "Inspect native plugin declarations",
     "Prove lifecycle hook mechanics",
-    "Verify with a native subagent"
+    "Verify with a native subagent",
+    "Route Apple Reminders approval gates",
+    "Enforce exact-task Stop state"
   ],
   "defaultPrompts": [
-    "Run the native plugin capability tour."
+    "Route this blocking yes or no approval through Agent Attention."
   ],
   "brandColor": "#3B5CCC",
   "composerIcon": "./assets/composer-icon.svg",
@@ -34,7 +36,7 @@
   "canary": {
     "owner": "myagentdojo",
     "actor": "myagentdojo",
-    "publicRepository": "agent-plugin-template-canary-public",
-    "privateRepository": "agent-plugin-template-canary-private"
+    "publicRepository": "agent-attention-public-canary",
+    "privateRepository": "agent-attention-private-canary"
   }
 }

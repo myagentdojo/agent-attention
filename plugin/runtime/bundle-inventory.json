@@ -1,6 +1,11 @@
 {
   "schemaVersion": 1,
   "bundles": {
+    "agent-attention": {
+      "path": "runtime/agent-attention-5133bb12807899e9.js",
+      "bytes": 4589,
+      "sha256": "5133bb12807899e90fdc0f861ca096ca8be9faa963063742630ce786ff0303c6"
+    },
     "hello-world": {
       "path": "runtime/hello-world.js",
       "bytes": 995,

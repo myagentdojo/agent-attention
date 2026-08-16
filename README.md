@@ -133,14 +133,16 @@ Local proof completes when the current worktree contains only the intended diff 
 plugin/
 ├── .claude-plugin/plugin.json
 ├── .codex-plugin/plugin.json
-├── skills/{capability-tour,hello-world,runtime-custody,skill-a,skill-b}/SKILL.md
-├── bin/{hello-world,skill-a,skill-b}
+├── skills/{agent-attention,capability-tour,hello-world,runtime-custody,skill-a,skill-b}/SKILL.md
+├── bin/{agent-attention,hello-world,skill-a,skill-b}
 ├── THIRD-PARTY-NOTICES.md
 └── runtime/
     ├── runtime-exec
     ├── runtime-lock.sh
     ├── skill-catalog.sh
     ├── bundle-inventory.{json,sh}
+    ├── agent-attention.py
+    ├── agent-attention-<digest>.js
     ├── hello-world.js
     └── skill-{a,b}-<digest>.js
 ```

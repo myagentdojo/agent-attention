@@ -1,6 +1,10 @@
 import { resolve } from "node:path"
 
 import {
+	checkAgentAttentionPayload,
+	writeAgentAttentionPayload,
+} from "./agent-attention-payload"
+import {
 	checkNativeCapabilityFixture,
 	writeNativeCapabilityFixture,
 } from "./native-capability-fixture"
@@ -39,6 +43,7 @@ for (const argument of arguments_) {
 const config = loadPluginConfig(root)
 if (check) {
 	const drifted = [
+		...checkAgentAttentionPayload(root),
 		...checkGeneratedFiles(root, config),
 		...checkNativeCapabilityFixture(root),
 		...checkRuntimeCustodyFiles(root),
@@ -52,6 +57,7 @@ if (check) {
 const files = check
 	? []
 	: [
+			...writeAgentAttentionPayload(root),
 			...writeGeneratedFiles(root, config),
 			...writeNativeCapabilityFixture(root),
 			...writeRuntimeCustodyFiles(root),

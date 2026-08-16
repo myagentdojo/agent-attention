@@ -1,11 +1,11 @@
 {
-  "name": "harness-native-plugin-prototype",
+  "name": "agent-attention",
   "interface": {
-    "displayName": "Harness Plugin Prototype"
+    "displayName": "Agent Attention"
   },
   "plugins": [
     {
-      "name": "harness-native-plugin-prototype",
+      "name": "agent-attention",
       "source": {
         "source": "local",
         "path": "./plugin"

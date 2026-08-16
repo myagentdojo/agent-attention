@@ -1,6 +1,11 @@
 {
   "schemaVersion": 1,
   "skills": {
+    "agent-attention": {
+      "entry": "runtime/agent-attention.js",
+      "runtimeProfile": "bun",
+      "workspace": "packages/agent-attention"
+    },
     "hello-world": {
       "entry": "runtime/hello-world.js",
       "runtimeProfile": "bun"
